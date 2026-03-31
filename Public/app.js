@@ -1,5 +1,5 @@
 // public/app.js
-const API = 'inventariolibreria-production.up.railway.app';
+const API = 'https://inventariolibreria-production.up.railway.app/api';
 
 // ── Helpers ──────────────────────────────────────────
 async function post(endpoint, data) {
