@@ -1,5 +1,5 @@
 // public/app.js
-const API = 'http://localhost:3000/api';
+const API = 'inventariolibreria-production.up.railway.app';
 
 // ── Helpers ──────────────────────────────────────────
 async function post(endpoint, data) {
