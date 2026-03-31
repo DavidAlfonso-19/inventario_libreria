@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Librería — Inventario</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f9fafb;
+      --white: #ffffff;
+      --radius: 10px;
+      --sidebar-w: 220px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+    }
+
+    .brand {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .brand span {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    nav {
+      padding: 16px 12px;
+      flex: 1;
+    }
+
+    nav p.nav-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 0 12px;
+      margin-bottom: 6px;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 7px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px;
+      cursor: pointer;
+    }
+
+    nav a:hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    nav a.active {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    nav a .icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    nav a.active .icon { opacity: 1; }
+
+    /* ── Main ── */
+    main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 860px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h2 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+    }
+
+    /* ── Form ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 24px;
+    }
+
+    .form-grid.single { grid-template-columns: 1fr; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    label span {
+      color: var(--accent);
+      margin-left: 2px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* ── Actions ── */
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 9px 20px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--text);
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: var(--bg); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
+    /* ── Section title inside card ── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Sidebar ── -->
+  <aside>
+    <div class="brand">
+      <h1>Librería</h1>
+      <span>Sistema de inventario</span>
+    </div>
+    <nav>
+      <p class="nav-label">Registros</p>
+
+      <a class="active" onclick="showPage('estantes', this)">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="3" width="20" height="4" rx="1"/>
+          <rect x="2" y="10" width="20" height="4" rx="1"/>
+          <rect x="2" y="17" width="20" height="4" rx="1"/>
+        </svg>
+        Estantes
+      </a>
+
+      <a onclick="showPage('editoriales', this)">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        Editoriales
+      </a>
+
+      <a onclick="showPage('autores', this)">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Autores
+      </a>
+
+      <a onclick="showPage('libros', this)">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        Libros
+      </a>
+
+      <a onclick="showPage('inventario', this)">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="1"/>
+          <path d="M9 12h6M9 16h4"/>
+        </svg>
+        Inventario
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- ESTANTES -->
+    <section id="page-estantes" class="page active">
+      <div class="page-header">
+        <h2>Registrar ubicación</h2>
+        <p>Define un nuevo pasillo y estante en el inventario.</p>
+      </div>
+      <div class="card">
+        <p class="section-title">Datos de ubicación</p>
+        <div class="form-grid">
+          <div class="field">
+            <label for="pasillo">Número de pasillo <span>*</span></label>
+            <input type="number" id="pasillo" name="pasillo" min="1" placeholder="Ej. 3" />
+            <span class="hint">Debe ser un número mayor a 0.</span>
+          </div>
+          <div class="field">
+            <label for="estante">Número de estante <span>*</span></label>
+            <input type="number" id="estante" name="estante" min="1" placeholder="Ej. 5" />
+            <span class="hint">Debe ser un número mayor a 0.</span>
+          </div>
+        </div>
+        <hr class="divider" />
+        <div class="actions">
+          <button class="btn" type="button" onclick="limpiar('page-estantes')">Limpiar</button>
+          <button class="btn btn-primary" type="button" id="btn-guardar-estante">Guardar ubicación</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDITORIALES -->
+    <section id="page-editoriales" class="page">
+      <div class="page-header">
+        <h2>Registrar editorial</h2>
+        <p>Agrega una nueva editorial al catálogo.</p>
+      </div>
+      <div class="card">
+        <p class="section-title">Datos de la editorial</p>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="nombre-editorial">Nombre de la editorial <span>*</span></label>
+            <input type="text" id="nombre-editorial" name="nombre_editorial" placeholder="Ej. Penguin Random House" maxlength="100" />
+          </div>
+          <div class="field full">
+            <label for="direccion-editorial">Dirección <span>*</span></label>
+            <textarea id="direccion-editorial" name="direccion_editorial" placeholder="Calle, número, ciudad, estado..." maxlength="150"></textarea>
+          </div>
+        </div>
+        <hr class="divider" />
+        <div class="actions">
+          <button class="btn" type="button" onclick="limpiar('page-editoriales')">Limpiar</button>
+          <button class="btn btn-primary" type="button" id="btn-guardar-editorial">Guardar editorial</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTORES -->
+    <section id="page-autores" class="page">
+      <div class="page-header">
+        <h2>Registrar autor</h2>
+        <p>Agrega un nuevo autor al sistema.</p>
+      </div>
+      <div class="card">
+        <p class="section-title">Datos del autor</p>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="rfc-autor">RFC <span>*</span></label>
+            <input type="text" id="rfc-autor" name="rfc_autor" placeholder="Ej. LOPM850312AB3" maxlength="13" style="text-transform: uppercase;" />
+            <span class="hint">Formato: 4 letras + 6 dígitos (fecha) + 3 alfanuméricos. Máx. 13 caracteres.</span>
+          </div>
+          <div class="field">
+            <label for="nombre-autor">Nombre completo <span>*</span></label>
+            <input type="text" id="nombre-autor" name="nombre_autor" placeholder="Ej. Gabriel García Márquez" maxlength="100" />
+          </div>
+          <div class="field">
+            <label for="nacionalidad">Nacionalidad <span>*</span></label>
+            <input type="text" id="nacionalidad" name="nacionalidad" placeholder="Ej. Colombiana" maxlength="50" />
+          </div>
+        </div>
+        <hr class="divider" />
+        <div class="actions">
+          <button class="btn" type="button" onclick="limpiar('page-autores')">Limpiar</button>
+          <button class="btn btn-primary" type="button" id="btn-guardar-autor">Guardar autor</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIBROS -->
+    <section id="page-libros" class="page">
+      <div class="page-header">
+        <h2>Registrar libro</h2>
+        <p>Añade un nuevo libro al inventario de la librería.</p>
+      </div>
+      <div class="card">
+        <p class="section-title">Datos del libro</p>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="nombre-libro">Nombre del libro <span>*</span></label>
+            <input type="text" id="nombre-libro" name="nombre_libro" placeholder="Ej. Cien años de soledad" maxlength="150" />
+          </div>
+          <div class="field">
+            <label for="autor-libro">Autor <span>*</span></label>
+            <select id="autor-libro" name="rfc_autor">
+              <option value="">— Selecciona un autor —</option>
+            </select>
+            <span class="hint">El autor debe estar registrado previamente.</span>
+          </div>
+          <div class="field">
+            <label for="editorial-libro">Editorial <span>*</span></label>
+            <select id="editorial-libro" name="id_editorial">
+              <option value="">— Selecciona una editorial —</option>
+            </select>
+            <span class="hint">La editorial debe estar registrada previamente.</span>
+          </div>
+          <div class="field">
+            <label for="ubicacion-libro">Ubicación <span>*</span></label>
+            <select id="ubicacion-libro" name="id_ubicacion">
+              <option value="">— Selecciona una ubicación —</option>
+            </select>
+            <span class="hint">Pasillo y estante registrados previamente.</span>
+          </div>
+          <div class="field">
+            <label for="cantidad-libro">Cantidad en existencia <span>*</span></label>
+            <input type="number" id="cantidad-libro" name="cantidad" min="0" placeholder="Ej. 12" />
+            <span class="hint">No puede ser un valor negativo.</span>
+          </div>
+        </div>
+        <hr class="divider" />
+        <div class="actions">
+          <button class="btn" type="button" onclick="limpiar('page-libros')">Limpiar</button>
+          <button class="btn btn-primary" type="button" id="btn-guardar-libro">Guardar libro</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- INVENTARIO -->
+    <section id="page-inventario" class="page">
+      <div class="page-header">
+        <h2>Inventario de libros</h2>
+        <p>Consulta todos los libros registrados en el sistema.</p>
+      </div>
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <table id="tabla-inventario" style="width:100%; border-collapse: collapse; font-size: 14px;">
+          <thead>
+            <tr style="background: var(--bg); border-bottom: 1px solid var(--border);">
+              <th style="padding: 12px 16px; text-align:left; font-weight:600; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.05em;">ID</th>
+              <th style="padding: 12px 16px; text-align:left; font-weight:600; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.05em;">Libro</th>
+              <th style="padding: 12px 16px; text-align:left; font-weight:600; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.05em;">Autor</th>
+              <th style="padding: 12px 16px; text-align:left; font-weight:600; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.05em;">Editorial</th>
+              <th style="padding: 12px 16px; text-align:left; font-weight:600; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.05em;">Ubicación</th>
+              <th style="padding: 12px 16px; text-align:center; font-weight:600; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.05em;">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody id="body-inventario">
+            <tr>
+              <td colspan="6" style="padding: 32px; text-align:center; color:var(--text-muted);">Cargando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    function showPage(name, el) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      el.classList.add('active');
+      if (name === 'inventario') cargarInventario();
+    }
+
+    function limpiar(pageId) {
+      const page = document.getElementById(pageId);
+      page.querySelectorAll('input, textarea').forEach(el => el.value = '');
+      page.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+    }
+  </script>
+  <script src="app.js"></script>
+
+</body>
+</html>
